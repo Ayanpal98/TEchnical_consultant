@@ -1,0 +1,9 @@
+{
+  "name": "TeleHealth Connect",
+  "description": "A comprehensive patient-clinician platform featuring real-time case tracking, camera capture, and consultant routing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
