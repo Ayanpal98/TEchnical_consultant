@@ -29,19 +29,12 @@ export function getConsultantSuggestions(
   const suggestions: ConsultantSuggestion[] = clinicians
     .filter(c => c.role === 'clinician' && c.isAvailable)
     .map(consultant => {
-      let score = 50; // Base score
+      let score = 0;
       const reasons: string[] = [];
 
-      // 1. Specialty Match
-      if (medicalCase.requiredSpecialty && consultant.specialty === medicalCase.requiredSpecialty) {
-        score += 30;
-        reasons.push('Specialty match');
-      } else if (medicalCase.requiredSpecialty) {
-        score -= 20;
-      }
-
-      // 2. Proximity
+      // 1. Proximity (Primary Priority - Max 70 points)
       let distance = Infinity;
+      let proximityScore = 0;
       if (medicalCase.location && consultant.location) {
         distance = calculateDistance(
           medicalCase.location.latitude,
@@ -50,18 +43,45 @@ export function getConsultantSuggestions(
           consultant.location.longitude
         );
 
-        if (distance < 5) {
-          score += 20;
+        // Always add specific distance reason
+        reasons.push(`Distance: ${distance.toFixed(1)}km`);
+
+        if (distance < 2) {
+          proximityScore = 70;
+          reasons.push('Excellent proximity (< 2km)');
+        } else if (distance < 5) {
+          proximityScore = 60;
           reasons.push('Very close proximity (< 5km)');
         } else if (distance < 15) {
-          score += 10;
+          proximityScore = 45;
           reasons.push('Nearby (< 15km)');
-        } else if (distance > 50) {
-          score -= 10;
+        } else if (distance < 30) {
+          proximityScore = 30;
+          reasons.push('Moderate proximity (< 30km)');
+        } else if (distance < 50) {
+          proximityScore = 15;
+          reasons.push('Extended proximity (< 50km)');
+        } else {
+          reasons.push('Outside ideal range (> 50km)');
         }
       } else {
-        reasons.push('Location data unavailable for distance calculation');
+        reasons.push('Location data unavailable');
       }
+
+      // 2. Specialty Match (Secondary Priority - Max 30 points)
+      let specialtyScore = 0;
+      if (medicalCase.requiredSpecialty) {
+        if (consultant.specialty === medicalCase.requiredSpecialty) {
+          specialtyScore = 30;
+          reasons.push(`Specialty match: ${consultant.specialty}`);
+        } else {
+          reasons.push(`Specialty mismatch: Case requires ${medicalCase.requiredSpecialty}, Consultant is ${consultant.specialty || 'Generalist'}`);
+        }
+      } else {
+        reasons.push('No specific specialty required for this case');
+      }
+
+      score = proximityScore + specialtyScore;
 
       return {
         consultant,

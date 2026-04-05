@@ -9,6 +9,7 @@ export interface UserProfile {
   role: UserRole;
   specialty?: Specialty;
   isAvailable?: boolean;
+  availabilityLastChanged?: string; // ISO string
   location?: {
     latitude: number;
     longitude: number;
@@ -33,6 +34,16 @@ export interface MedicalCase {
   status: CaseStatus;
   assignedConsultantId?: string;
   assignedConsultantName?: string;
+  diagnosis?: string;
+  medications?: string[];
+  clinicianNotes?: string;
+  treatmentPlan?: string[];
+  medicalAssistanceMeasures?: string;
+  consultationSteps?: {
+    consulted: boolean;
+    analyzed: boolean;
+    updated: boolean;
+  };
   createdAt: any; // ISO string or Timestamp
   updatedAt: any; // ISO string or Timestamp
 }
