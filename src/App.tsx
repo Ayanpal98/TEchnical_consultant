@@ -24,7 +24,10 @@ import {
   User as UserIcon,
   Activity,
   Database,
-  WifiOff
+  WifiOff,
+  UserCircle,
+  Edit2,
+  Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile, MedicalCase, UserRole, CaseStatus } from './types';
@@ -426,10 +429,96 @@ const CreateCaseModal = ({ userProfile, onClose }: { userProfile: UserProfile, o
 
 // --- Clinician Views ---
 
+const PatientProfileSection = ({ patientId }: { patientId: string }) => {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const profiles = mockDb.getProfiles();
+    const p = profiles.find(u => u.uid === patientId);
+    if (p) {
+      setProfile(p);
+      setEditedProfile(p);
+    }
+  }, [patientId]);
+
+  const handleSave = () => {
+    if (editedProfile) {
+      mockDb.saveProfile(editedProfile);
+      setProfile(editedProfile);
+      setIsEditing(false);
+    }
+  };
+
+  if (!profile) return <div className="p-8 text-center text-gray-500 italic">Profile not found</div>;
+
+  return (
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-xl font-bold text-gray-900">Patient Profile</h3>
+        <button 
+          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all",
+            isEditing ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          )}
+        >
+          {isEditing ? <><Save className="w-4 h-4" /> Save Changes</> : <><Edit2 className="w-4 h-4" /> Edit Profile</>}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Full Name</label>
+            {isEditing ? (
+              <input 
+                type="text"
+                value={editedProfile?.displayName || ''}
+                onChange={(e) => setEditedProfile(prev => prev ? { ...prev, displayName: e.target.value } : null)}
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            ) : (
+              <p className="text-gray-900 font-medium">{profile.displayName || 'N/A'}</p>
+            )}
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Email Address</label>
+            <p className="text-gray-900 font-medium">{profile.email}</p>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Account Created</label>
+            <p className="text-gray-900 font-medium">{new Date(profile.createdAt).toLocaleDateString()}</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+            <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">Clinical Notes</h4>
+            <p className="text-xs text-blue-600 leading-relaxed">
+              This patient has been registered since {new Date(profile.createdAt).getFullYear()}. 
+              All medical history is stored securely in local storage.
+            </p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">System Info</h4>
+            <div className="space-y-1">
+              <p className="text-[10px] text-gray-500">UID: {profile.uid}</p>
+              <p className="text-[10px] text-gray-500">Role: {profile.role}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ClinicianDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
   const [cases, setCases] = useState<MedicalCase[]>([]);
   const [selectedCase, setSelectedCase] = useState<MedicalCase | null>(null);
   const [view, setView] = useState<'queue' | 'map' | 'audit'>('queue');
+  const [detailTab, setDetailTab] = useState<'case' | 'profile'>('case');
   const [suggestions, setSuggestions] = useState<ConsultantSuggestion[]>([]);
 
   useEffect(() => {
@@ -605,7 +694,26 @@ const ClinicianDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
                       </div>
                       <div>
                         <h2 className="text-2xl font-bold text-gray-900">{selectedCase.patientName}</h2>
-                        <p className="text-gray-500">Case ID: {selectedCase.id.slice(0, 8)}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <button 
+                            onClick={() => setDetailTab('case')}
+                            className={cn(
+                              "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg transition-all",
+                              detailTab === 'case' ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            )}
+                          >
+                            Case Details
+                          </button>
+                          <button 
+                            onClick={() => setDetailTab('profile')}
+                            className={cn(
+                              "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg transition-all",
+                              detailTab === 'profile' ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            )}
+                          >
+                            Patient Profile
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -636,88 +744,92 @@ const ClinicianDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Symptoms</h3>
-                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                              {selectedCase.requiredSpecialty || 'General Medicine'}
-                            </span>
-                          </div>
-                          <p className="text-gray-700 leading-relaxed">
-                            {selectedCase.symptoms}
-                          </p>
-                        </div>
-                      </div>
-                      {selectedCase.imageUrl && (
+                  {detailTab === 'case' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
                         <div>
-                          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Image</h3>
-                          <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                            <img src={selectedCase.imageUrl} alt="Symptom" className="w-full h-auto" />
+                          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Symptoms</h3>
+                          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                {selectedCase.requiredSpecialty || 'General Medicine'}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 leading-relaxed">
+                              {selectedCase.symptoms}
+                            </p>
                           </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="space-y-6">
-                      {selectedCase.status === 'pending' && suggestions.length > 0 && (
-                        <div>
-                          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Suggested Consultants</h3>
-                          <div className="space-y-3">
-                            {suggestions.slice(0, 3).map((s) => (
-                              <div key={s.consultant.uid} className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
-                                      {s.consultant.displayName?.[0]}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-bold text-gray-900">{s.consultant.displayName}</p>
-                                      <p className="text-[10px] text-blue-600 font-medium">{s.consultant.specialty}</p>
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <span className="text-xs font-bold text-blue-700">{s.score}% Match</span>
-                                    <p className="text-[10px] text-gray-400">{s.distance.toFixed(1)}km away</p>
-                                  </div>
-                                </div>
-                                <div className="flex flex-wrap gap-1 mb-3">
-                                  {s.reasons.map((r, i) => (
-                                    <span key={i} className="text-[9px] bg-white text-gray-500 px-1.5 py-0.5 rounded border border-gray-100">
-                                      {r}
-                                    </span>
-                                  ))}
-                                </div>
-                                <button 
-                                  onClick={() => handleAssign(selectedCase.id, s.consultant)}
-                                  className="w-full py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all"
-                                >
-                                  Assign to {s.consultant.displayName.split(' ')[0]}
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Location</h3>
-                        {selectedCase.location ? (
-                          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-3">
-                            <MapPin className="w-5 h-5 text-blue-600" />
-                            <div>
-                              <p className="text-sm font-bold text-gray-900">Coordinates</p>
-                              <p className="text-xs text-gray-500">
-                                {selectedCase.location.latitude.toFixed(4)}, {selectedCase.location.longitude.toFixed(4)}
-                              </p>
+                        {selectedCase.imageUrl && (
+                          <div>
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Attached Image</h3>
+                            <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                              <img src={selectedCase.imageUrl} alt="Symptom" className="w-full h-auto" />
                             </div>
                           </div>
-                        ) : (
-                          <p className="text-gray-400 italic">No location provided</p>
                         )}
                       </div>
+                      <div className="space-y-6">
+                        {selectedCase.status === 'pending' && suggestions.length > 0 && (
+                          <div>
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Suggested Consultants</h3>
+                            <div className="space-y-3">
+                              {suggestions.slice(0, 3).map((s) => (
+                                <div key={s.consultant.uid} className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                                        {s.consultant.displayName?.[0]}
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-bold text-gray-900">{s.consultant.displayName}</p>
+                                        <p className="text-[10px] text-blue-600 font-medium">{s.consultant.specialty}</p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <span className="text-xs font-bold text-blue-700">{s.score}% Match</span>
+                                      <p className="text-[10px] text-gray-400">{s.distance.toFixed(1)}km away</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 mb-3">
+                                    {s.reasons.map((r, i) => (
+                                      <span key={i} className="text-[9px] bg-white text-gray-500 px-1.5 py-0.5 rounded border border-gray-100">
+                                        {r}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <button 
+                                    onClick={() => handleAssign(selectedCase.id, s.consultant)}
+                                    className="w-full py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition-all"
+                                  >
+                                    Assign to {s.consultant.displayName.split(' ')[0]}
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Location</h3>
+                          {selectedCase.location ? (
+                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-3">
+                              <MapPin className="w-5 h-5 text-blue-600" />
+                              <div>
+                                <p className="text-sm font-bold text-gray-900">Coordinates</p>
+                                <p className="text-xs text-gray-500">
+                                  {selectedCase.location.latitude.toFixed(4)}, {selectedCase.location.longitude.toFixed(4)}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 italic">No location provided</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <PatientProfileSection patientId={selectedCase.patientId} />
+                  )}
                 </div>
                 
                 <div className="p-8 bg-gray-50/50">
