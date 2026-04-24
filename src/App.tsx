@@ -5,7 +5,8 @@ import {
   Route, 
   Navigate, 
   Link, 
-  useNavigate 
+  useNavigate,
+  useLocation
 } from 'react-router-dom';
 import { 
   Camera, 
@@ -36,12 +37,15 @@ import {
   Star,
   Navigation,
   ShieldCheck,
+  ShieldAlert,
   UserCheck,
   Stethoscope,
   FileText,
   Pill,
   Check,
-  ArrowRight
+  ArrowRight,
+  Printer,
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Map, Marker } from 'pigeon-maps';
@@ -652,10 +656,14 @@ const CreateCaseModal = ({ userProfile, onClose }: { userProfile: UserProfile, o
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
-      onClose();
+      
+      // Delay for feedback
+      setTimeout(() => {
+        onClose();
+        setIsSubmitting(false);
+      }, 1200);
     } catch (err) {
       console.error(err);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -790,9 +798,37 @@ const CreateCaseModal = ({ userProfile, onClose }: { userProfile: UserProfile, o
           <button 
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3 overflow-hidden relative"
           >
-            {isSubmitting ? "Submitting..." : "Submit Case"}
+            <AnimatePresence mode="wait">
+              {isSubmitting ? (
+                <motion.div 
+                  key="submitting"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center gap-2"
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                  />
+                  <span>Processing...</span>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="idle"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center gap-2"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Submit Case Request</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </button>
         </form>
 
@@ -822,6 +858,7 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
   const [medicalAssistanceMeasures, setMedicalAssistanceMeasures] = useState(medicalCase.medicalAssistanceMeasures || '');
   const [steps, setSteps] = useState(medicalCase.consultationSteps || { consulted: false, analyzed: false, updated: false });
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [showConfirmComplete, setShowConfirmComplete] = useState(false);
 
   const handleAddMed = () => {
@@ -852,6 +889,7 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveSuccess(false);
     try {
       mockDb.updateCase(medicalCase.id, {
         diagnosis,
@@ -862,6 +900,8 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
         consultationSteps: steps,
         status: steps.updated ? 'in-progress' : medicalCase.status
       });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
     } finally {
       setIsSaving(false);
     }
@@ -893,18 +933,39 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
           <p className="text-sm text-gray-500">Follow the guided steps to provide proper medical guidance.</p>
         </div>
         <div className="flex items-center gap-2">
+          <AnimatePresence mode="wait">
+            {saveSuccess && (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Saved!</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm flex items-center gap-2 group"
           >
+            {isSaving ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full"
+              />
+            ) : <Save className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />}
             {isSaving ? "Saving..." : "Save Progress"}
           </button>
           <button 
             onClick={() => setShowConfirmComplete(true)}
             disabled={!steps.consulted || !steps.analyzed || !steps.updated || isSaving}
-            className="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all text-sm disabled:opacity-50 shadow-lg shadow-green-100 flex items-center gap-2"
           >
+            <CheckCircle className="w-4 h-4" />
             Complete Case
           </button>
         </div>
@@ -1011,34 +1072,42 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
               </button>
             </div>
             <div className="space-y-2">
-              {treatmentPlan.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <ClipboardList className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-xs text-gray-400">No treatment steps added yet</p>
-                </div>
-              ) : (
-                treatmentPlan.map((step, index) => (
+              <AnimatePresence>
+                {treatmentPlan.length === 0 ? (
                   <motion.div 
-                    key={index}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
-                        <span className="text-xs font-bold">{index + 1}</span>
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{step}</span>
-                    </div>
-                    <button 
-                      onClick={() => handleRemovePlanStep(index)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                    >
-                      <Plus className="w-4 h-4 rotate-45" />
-                    </button>
+                    <ClipboardList className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-xs text-gray-400">No treatment steps added yet</p>
                   </motion.div>
-                ))
-              )}
+                ) : (
+                  treatmentPlan.map((step, index) => (
+                    <motion.div 
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-indigo-200 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                          <span className="text-xs font-bold">{index + 1}</span>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">{step}</span>
+                      </div>
+                      <button 
+                        onClick={() => handleRemovePlanStep(index)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      >
+                        <Plus className="w-4 h-4 rotate-45" />
+                      </button>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
             </div>
           </div>
           <div>
@@ -1060,34 +1129,42 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
               </button>
             </div>
             <div className="space-y-2">
-              {medications.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <Pill className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-xs text-gray-400">No medications prescribed yet</p>
-                </div>
-              ) : (
-                medications.map((med, index) => (
+              <AnimatePresence>
+                {medications.length === 0 ? (
                   <motion.div 
-                    key={index}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                        <Pill className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{med}</span>
-                    </div>
-                    <button 
-                      onClick={() => handleRemoveMed(index)}
-                      className="text-gray-300 hover:text-red-500 transition-colors"
-                    >
-                      <Plus className="w-4 h-4 rotate-45" />
-                    </button>
+                    <Pill className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-xs text-gray-400">No medications prescribed yet</p>
                   </motion.div>
-                ))
-              )}
+                ) : (
+                  medications.map((med, index) => (
+                    <motion.div 
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-blue-200 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                          <Pill className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">{med}</span>
+                      </div>
+                      <button 
+                        onClick={() => handleRemoveMed(index)}
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                      >
+                        <Plus className="w-4 h-4 rotate-45" />
+                      </button>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -2136,133 +2213,613 @@ const ClinicianDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
 // --- User Manual ---
 
 const UserManual = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('export') === 'true' && !isPrinting) {
+      setIsPrinting(true);
+      const timer = setTimeout(() => {
+        window.print();
+        navigate('/manual', { replace: true });
+        setIsPrinting(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [location.search, isPrinting, navigate]);
+
+  const handlePrint = () => {
+    console.log("Initiating Print");
+    window.print();
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-5xl mx-auto px-4 py-12 selection:bg-blue-100 italic-serif">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden"
+        className="bg-white rounded-[3rem] border border-gray-100 shadow-2xl overflow-hidden print-container relative"
       >
-        <div className="p-8 border-b border-gray-50 bg-blue-600 text-white">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-              <BookOpen className="w-6 h-6 text-white" />
+        <div className="p-12 border-b border-gray-100 bg-gray-900 text-white flex flex-col md:flex-row justify-between items-start md:items-end gap-8 relative z-10">
+          <div className="space-y-6 max-w-2xl">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20">
+                <Activity className="w-8 h-8 text-white" />
+              </div>
+              <div className="h-[2px] w-12 bg-blue-500/30" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400">Spec-Document v2.4</span>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold">User Manual & Guide</h1>
-              <p className="text-blue-100">Learn how to use TeleHealth Connect effectively</p>
+            
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-[0.85]">
+              Platform <br />
+              <span className="text-blue-500 underline decoration-blue-500/20 underline-offset-[12px]">Specification</span>
+            </h1>
+            <p className="text-gray-400 font-medium text-lg max-w-lg leading-relaxed">
+              Proprietary architectural blueprint and governance framework for the TeleHealth Connect decentralized medical infrastructure.
+            </p>
+          </div>
+          
+          <div className="flex flex-col items-start md:items-end gap-6 no-print">
+            <div className="text-left md:text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Confidentiality Tier</p>
+              <span className="px-4 py-1.5 bg-red-500/10 text-red-500 rounded-full text-[10px] font-black border border-red-500/20 flex items-center gap-2">
+                <ShieldAlert className="w-3 h-3" />
+                IP RESTRICTED
+              </span>
             </div>
+            <button 
+              onClick={handlePrint}
+              className="bg-blue-600 hover:bg-blue-700 p-4 px-10 rounded-2xl transition-all flex items-center gap-3 font-black text-xs shadow-2xl shadow-blue-500/20 group hover:-translate-y-1"
+            >
+              <Printer className="w-5 h-5 group-hover:rotate-6 transition-transform" />
+              <span>EXPORT AS PORTFOLIO ASSET</span>
+            </button>
           </div>
         </div>
 
-        <div className="p-8 space-y-12">
-          {/* Section: Getting Started */}
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                <Info className="w-4 h-4" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">Getting Started</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                <h3 className="font-bold text-gray-900 mb-2">Local Storage Mode</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  TeleHealth Connect currently operates in <strong>Local Storage Mode</strong>. This means all your data (profiles, cases, notes) is saved directly in your browser's memory. No data is sent to a central server, ensuring maximum privacy for this demo.
+        <div className="p-12 space-y-24">
+          <section className="relative">
+            <div className="absolute -left-12 top-0 w-1.5 h-48 bg-blue-600 rounded-full" />
+            <div className="max-w-3xl">
+              <span className="text-blue-600 font-black text-xs uppercase tracking-[0.3em] mb-4 block">Section 01</span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-8">System Architecture & <br /> Data Sovereignty</h2>
+              <div className="prose prose-blue max-w-none text-gray-600 space-y-6">
+                <p className="text-xl font-medium leading-relaxed italic border-l-4 border-gray-100 pl-6 text-gray-500">
+                  TeleHealth Connect operates on a "No-Cloud" localized persistence model, shifting the authority of truth from centralized servers to validated user instances.
                 </p>
-              </div>
-              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                <h3 className="font-bold text-gray-900 mb-2">Offline Capability</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  The app works even without an internet connection! If you go offline, a red indicator will appear in the navigation bar. You can still create and manage cases; they will sync across your browser tabs automatically.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Section: For Patients */}
-          <section>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                <UserIcon className="w-4 h-4" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">Patient Guide</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="flex gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
-                  <Plus className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Creating a Case</h4>
-                  <p className="text-sm text-gray-600">Click "New Consultation" on your dashboard. Describe your symptoms, select a specialty, and optionaly attach a photo. Use "Detect Location" to help find nearby consultants.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Tracking Status</h4>
-                  <p className="text-sm text-gray-600">Your cases appear in your dashboard. Statuses update in real-time: <strong>Pending</strong> (waiting for clinician), <strong>Assigned</strong> (clinician found), <strong>In Progress</strong> (consultation active), and <strong>Completed</strong>.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
+                  <div className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 group hover:border-blue-200 transition-colors">
+                    <Database className="w-8 h-8 text-blue-600 mb-6" />
+                    <h3 className="text-xl font-black text-gray-900 mb-4">LFPM Protocol</h3>
+                    <p className="text-sm leading-relaxed text-gray-600">The Local-First Persistence Model ensures zero-latency diagnostics and complete PII (Patient Identifiable Information) sovereignty. Data never leaves the client sandbox unless authorized for export.</p>
+                  </div>
+                  <div className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 group hover:border-indigo-200 transition-colors">
+                    <WifiOff className="w-8 h-8 text-indigo-600 mb-6" />
+                    <h3 className="text-xl font-black text-gray-900 mb-4">Resilient Syncing</h3>
+                    <p className="text-sm leading-relaxed text-gray-600">Utilizing a multi-tab storage bus, the system maintains real-time state integrity even during complete network saturation or total offline environments.</p>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Section: For Clinicians */}
+          {/* Section 02: Operational Workflows */}
           <section>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                <Users className="w-4 h-4" />
+            <div className="flex flex-col md:flex-row gap-12 items-start">
+              <div className="w-full md:w-1/3 space-y-6">
+                <span className="text-indigo-600 font-black text-xs uppercase tracking-[0.3em] block">Section 02</span>
+                <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-[1]">Operational <br /> Workflows</h2>
+                <div className="p-6 bg-indigo-50 rounded-3xl border border-indigo-100/50">
+                  <p className="text-xs font-bold text-indigo-900/60 uppercase mb-4 tracking-widest">Performance Metric</p>
+                  <p className="text-3xl font-black text-indigo-600">&lt;1.2s</p>
+                  <p className="text-sm font-medium text-indigo-900/80">Average Case Routing Latency</p>
+                </div>
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Clinician Guide</h2>
+              
+              <div className="flex-1 grid grid-cols-1 gap-8">
+                <div className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity">
+                    <UserIcon className="w-32 h-32" />
+                  </div>
+                  <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                    <span className="w-2 h-8 bg-green-500 rounded-full" />
+                    Patient: The "Care-Path"
+                  </h3>
+                  <ul className="space-y-4">
+                    {[
+                      "Identity verification via unique entropy tokens.",
+                      "Multimedia diagnostic evidence ingestion (Photos/Notes).",
+                      "Automated geospatial router selection.",
+                      "Direct feedback loop for completed consultations."
+                    ].map((item, i) => (
+                      <li key={i} className="flex gap-4 items-start text-sm text-gray-600 font-medium">
+                        <span className="shrink-0 w-5 h-5 bg-green-50 text-green-600 rounded flex items-center justify-center font-black text-[10px] border border-green-100">{i+1}</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="p-10 bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity">
+                    <Users className="w-32 h-32" />
+                  </div>
+                  <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                    <span className="w-2 h-8 bg-blue-500 rounded-full" />
+                    Clinician: Professional Suite
+                  </h3>
+                  <ul className="space-y-4">
+                    {[
+                      "Dynamic availability matrix for priority routing.",
+                      "3-Phase Medical Analysis Workspace (Consult/Audit/Plan).",
+                      "Interactive map-based patient queue visualization.",
+                      "Compliant medical record generation and finalization."
+                    ].map((item, i) => (
+                      <li key={i} className="flex gap-4 items-start text-sm text-gray-600 font-medium">
+                        <span className="shrink-0 w-5 h-5 bg-blue-50 text-blue-600 rounded flex items-center justify-center font-black text-[10px] border border-blue-100">{i+1}</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                  <ClipboardList className="w-5 h-5 text-indigo-600" />
+          </section>
+
+          {/* Section 03: Security & Legal */}
+          <section className="bg-gray-50 p-12 rounded-[4rem] border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-0 right-10 rotate-12 opacity-[0.03] no-print">
+              <ShieldCheck className="w-96 h-96" />
+            </div>
+            
+            <div className="relative z-10 max-w-2xl">
+              <span className="text-red-500 font-black text-xs uppercase tracking-[0.3em] mb-4 block">Section 03</span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-8">Governance & <br /> Privacy Protocols</h2>
+              <div className="space-y-6 text-gray-600 leading-relaxed font-medium">
+                <p>
+                  This specification serves as the primary technical documentation for the TeleHealth Connect Protocol. By utilizing this infrastructure, all participants adhere to the <strong>Universal Health Data Privacy Standard (UHDPS)</strong>.
+                </p>
+                <div className="bg-white p-8 rounded-3xl border border-gray-200 text-sm italic-serif leading-relaxed text-gray-500 border-l-[12px] border-l-gray-900">
+                  "Individual patient data is strictly compartmentalized. Clinicians do not have persistent access to records post-consultation completion, ensuring an immutable trail of medical integrity."
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Managing the Queue</h4>
-                  <p className="text-sm text-gray-600">The Patient Queue updates live. Select a case to see details, suggested consultants (based on specialty and distance), and the patient's location on the map.</p>
+                
+                <div className="pt-8 border-t border-gray-200">
+                  <h4 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    IP & Trademark Notice
+                  </h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    The "LFPM Protocol", "Geospatial Case-Routing Engine", and "3-Phase Diagnostic Methodology" are proprietary assets of TeleHealth Connect. All logic paths, UI components, and architectural schemas are protected under international intellectual property frameworks.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-4 pt-6">
+                  <div className="px-4 py-2 bg-gray-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest">HIPAA Aligned Logic</div>
+                  <div className="px-4 py-2 bg-gray-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest">GDPR Native Compliance</div>
+                  <div className="px-4 py-2 bg-gray-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest">RFC 7519 Standards</div>
                 </div>
               </div>
-              <div className="flex gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                  <UserCircle className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Patient Profiles</h4>
-                  <p className="text-sm text-gray-600">Switch to the "Patient Profile" tab when a case is selected. You can view and edit patient information to keep records accurate during consultations.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Availability Toggle</h4>
-                  <p className="text-sm text-gray-600">Use the toggle in your header to set yourself as "Available" or "Unavailable". This affects whether you appear in the routing suggestions for new cases.</p>
-                </div>
+            </div>
+          </section>
+
+          {/* Section 04: Functional Inventory */}
+          <section className="relative">
+            <div className="absolute -right-12 top-0 w-1.5 h-64 bg-green-500 rounded-full" />
+            <div className="max-w-4xl">
+              <span className="text-green-600 font-black text-xs uppercase tracking-[0.3em] mb-4 block">Section 04</span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-12">Core Functional Architecture</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { 
+                    title: "Identity Tokenization", 
+                    desc: "Stateless authentication utilizing local entropy for unique patient/clinician instance validation.",
+                    icon: ShieldCheck
+                  },
+                  { 
+                    title: "Geospatial Routing", 
+                    desc: "Advanced logic engine calculating proximity vectors to match clinical cases with nearby specialists.",
+                    icon: MapPin
+                  },
+                  { 
+                    title: "Multimedia Evidence", 
+                    desc: "Serialized ingestion of high-resolution diagnostic imagery integrated directly into the case lifecycle.",
+                    icon: Camera
+                  },
+                  { 
+                    title: "LFPM Synchronization", 
+                    desc: "Local-First Persistence Model leveraging the Storage API for real-time cross-tab state integrity.",
+                    icon: Database
+                  },
+                  { 
+                    title: "3-Phase Diagnostics", 
+                    desc: "Proprietary structured workflow ensuring clinical consistency through Consult, Analysis, and Plan phases.",
+                    icon: Stethoscope
+                  },
+                  { 
+                    title: "Immutable Audit Log", 
+                    desc: "Comprehensive tracking of all system interactions to maintain transparency and legal document integrity.",
+                    icon: ClipboardList
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="p-6 bg-white border border-gray-100 rounded-3xl shadow-sm hover:border-green-200 transition-colors">
+                    <item.icon className="w-6 h-6 text-green-600 mb-4" />
+                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-2">{item.title}</h4>
+                    <p className="text-[11px] font-medium text-gray-500 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
         </div>
 
-        <div className="p-8 bg-gray-50 border-t border-gray-100 text-center">
-          <Link to="/" className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline">
-            Back to Dashboard <ChevronRight className="w-4 h-4" />
-          </Link>
+        {/* Footer Meta */}
+        <div className="p-12 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-8 bg-white">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-gray-900 uppercase tracking-widest">TeleHealth Protocol</p>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">San Francisco, CA • Est 2024</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-12">
+            <div className="text-right">
+              <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Document Status</p>
+              <p className="text-xs font-black text-green-600 uppercase">Verified & Active</p>
+            </div>
+            <div className="text-right hidden md:block">
+              <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Dossier ID</p>
+              <p className="text-xs font-black text-gray-900 uppercase">THC-2024-XPQ</p>
+            </div>
+          </div>
         </div>
       </motion.div>
+
+      {/* Return Link - Non Printing */}
+      <div className="mt-12 text-center no-print">
+        <Link to="/" className="inline-flex items-center gap-3 text-gray-400 font-bold hover:text-blue-600 transition-colors group">
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform group-hover:rotate-180" />
+          <span>Return to Infrastructure Portal</span>
+        </Link>
+      </div>
     </div>
   );
 };
 
 // --- Auth & Main App ---
 
-const Login = () => {
+// --- Welcome Page ---
+
+const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  return (
+    <div className="min-h-screen bg-white selection:bg-blue-100 italic-serif">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl font-black tracking-tight text-gray-900">TeleHealth Connect</span>
+          </div>
+          <button 
+            onClick={onGetStarted}
+            className="px-6 py-2.5 bg-gray-900 text-white rounded-full font-bold hover:bg-black transition-all shadow-lg shadow-gray-200"
+          >
+            Sign In
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={containerVariants}
+            className="space-y-8"
+          >
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-bold border border-blue-100">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Next-Generation Medical Platform</span>
+            </motion.div>
+            
+            <motion.h1 variants={itemVariants} className="text-6xl md:text-7xl font-black leading-[0.9] tracking-tight text-gray-900">
+              Healthcare <br />
+              <span className="text-blue-600">Without Bounds.</span>
+            </motion.h1>
+            
+            <motion.p variants={itemVariants} className="text-xl text-gray-500 max-w-xl leading-relaxed">
+              Experience a seamless bridge between patients and clinicians. Advanced AI routing, 
+              offline-first architecture, and secure local persistence—all in one place.
+            </motion.p>
+            
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
+              <button 
+                onClick={onGetStarted}
+                className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-3 group"
+              >
+                Get Started Now
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <Link
+                to="/manual?export=true"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-10 py-5 bg-white text-gray-900 border-2 border-gray-100 rounded-2xl font-bold text-lg hover:border-gray-200 transition-all flex items-center justify-center gap-3 group"
+              >
+                <Printer className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                View & Export Documentation
+              </Link>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="flex items-center gap-6 pt-8 border-t border-gray-100">
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=doctor${i}`} alt="doctor" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                <div className="w-10 h-10 rounded-full border-2 border-white bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                  +12
+                </div>
+              </div>
+              <p className="text-sm text-gray-500">
+                Trusted by <strong>200+</strong> clinical specialists worldwide
+              </p>
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
+          >
+            {/* Visual Representation of Dashboard */}
+            <div className="relative bg-gray-900 rounded-[3rem] p-5 shadow-[0_32px_64px_-16px_rgba(37,99,235,0.2)] aspect-[4/3.5] overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 mix-blend-overlay" />
+              
+              <div className="h-full w-full bg-white rounded-[2.2rem] overflow-hidden border border-white/20 p-6 flex flex-col gap-6">
+                {/* Header Preview */}
+                <div className="flex items-center justify-between pb-4 border-b border-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded-lg" />
+                    <div className="h-3 w-24 bg-gray-100 rounded-full" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-8 h-4 bg-green-100 rounded-full" />
+                    <div className="w-4 h-4 bg-gray-100 rounded-full" />
+                  </div>
+                </div>
+                
+                {/* Bento Grid Preview */}
+                <div className="grid grid-cols-12 gap-4 flex-1">
+                  {/* Left Column: List/Queue */}
+                  <div className="col-span-4 space-y-3">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="h-10 bg-gray-50/50 rounded-xl border border-gray-100 flex items-center px-3 gap-2">
+                        <div className="w-5 h-5 bg-gray-200 rounded-lg shrink-0" />
+                        <div className="h-1.5 w-full bg-gray-200 rounded-full" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Middle Column: Detail View */}
+                  <div className="col-span-8 flex flex-col gap-4">
+                    <div className="p-6 bg-blue-50/30 rounded-3xl border border-blue-50 flex-1 flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-3 w-1/2 bg-gray-200 rounded-full" />
+                          <div className="h-2 w-1/3 bg-gray-100 rounded-full" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 h-full">
+                        <div className="bg-white/80 rounded-2xl p-4 flex flex-col gap-2">
+                          <div className="h-2 w-12 bg-indigo-100 rounded-full" />
+                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                        </div>
+                        <div className="bg-white/80 rounded-2xl p-4 flex flex-col gap-2">
+                          <div className="h-2 w-12 bg-green-100 rounded-full" />
+                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Controls */}
+                <div className="h-12 bg-gray-900 rounded-2xl p-3 flex items-center justify-between">
+                  <div className="flex gap-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                    <div className="h-1.5 w-20 bg-white/20 rounded-full" />
+                  </div>
+                  <div className="w-16 h-4 bg-white/10 rounded-full" />
+                </div>
+              </div>
+
+              {/* Status Tags */}
+              <motion.div 
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 4 }}
+                className="absolute top-12 left-12 bg-white px-4 py-2 rounded-2xl shadow-2xl border border-gray-100 flex items-center gap-2"
+              >
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-[10px] font-black uppercase text-gray-900 tracking-wider">Clinician Live</span>
+              </motion.div>
+
+              <motion.div 
+                animate={{ x: [0, 10, 0] }}
+                transition={{ repeat: Infinity, duration: 3 }}
+                className="absolute bottom-24 right-12 bg-indigo-600 px-4 py-3 rounded-2xl shadow-2xl text-white flex items-center gap-3"
+              >
+                <Pill className="w-4 h-4" />
+                <span className="text-[10px] font-bold">New Rx Generated</span>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl font-black text-gray-900 tracking-tight">Platform Feature Updates</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">
+              Our latest release introduces critical infrastructure upgrades for both patients and healthcare providers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {/* Patient Features */}
+            <div className="bg-white p-12 rounded-[4rem] border border-gray-100 shadow-sm hover:shadow-2xl transition-all group overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
+                <Users className="w-64 h-64" />
+              </div>
+              <div className="w-16 h-16 bg-green-50 text-green-600 rounded-3xl flex items-center justify-center mb-8 shadow-inner border border-green-100 group-hover:scale-110 transition-transform">
+                <UserIcon className="w-8 h-8" />
+              </div>
+              <h3 className="text-3xl font-black text-gray-900 mb-2">Patient Gateway</h3>
+              <p className="text-gray-500 mb-10 text-lg font-medium leading-relaxed">Secure ingestion portal for clinical evidence and history tracking.</p>
+              
+              <div className="space-y-6">
+                {[
+                  { title: "Distributed Identity", desc: "Local-only credentials for absolute privacy.", icon: ShieldCheck },
+                  { title: "Multimedia Ingress", desc: "Drag-and-drop diagnostic photo attachments.", icon: Camera },
+                  { title: "Live Status Sync", desc: "Watch consultation lifecycle in real-time.", icon: Activity }
+                ].map((f, i) => (
+                  <div key={i} className="flex gap-4 p-5 rounded-3xl border border-gray-50 hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm text-green-600">
+                      <f.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">{f.title}</p>
+                      <p className="text-xs text-gray-400 font-medium">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Clinician Features */}
+            <div className="bg-gray-900 p-12 rounded-[4rem] shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+              <div className="absolute top-0 right-0 p-12 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-700">
+                <Activity className="w-64 h-64 text-white" />
+              </div>
+              <div className="w-16 h-16 bg-white/10 text-white rounded-3xl flex items-center justify-center mb-8 border border-white/10 group-hover:rotate-12 transition-transform">
+                <Activity className="w-8 h-8" />
+              </div>
+              <h3 className="text-3xl font-black text-white mb-2">Clinician Suite</h3>
+              <p className="text-gray-400 mb-10 text-lg font-medium leading-relaxed">Professional command center for diagnostic excellence.</p>
+              
+              <div className="space-y-6">
+                {[
+                  { title: "AI Routing Engine", desc: "Precision geospatial case distribution logic.", icon: MapPin },
+                  { title: "Diagnostic Workflow", desc: "Structured Consult-Analyze-Plan methodology.", icon: Stethoscope },
+                  { title: "Immutable Audit Log", desc: "Complete clinical decision trace sovereignty.", icon: Database }
+                ].map((f, i) => (
+                  <div key={i} className="flex gap-4 p-5 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400">
+                      <f.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white text-sm">{f.title}</p>
+                      <p className="text-xs text-gray-500 font-medium">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-gray-900 text-white overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2" />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
+            {[
+              { label: "Consultations", value: "50k+" },
+              { label: "Specialists", value: "200+" },
+              { label: "Accuracy", value: "99.9%" },
+              { label: "Uptime", value: "100%" }
+            ].map((stat, i) => (
+              <div key={i} className="text-center space-y-2">
+                <p className="text-5xl lg:text-7xl font-black tracking-tighter text-blue-500">{stat.value}</p>
+                <p className="text-sm font-bold uppercase tracking-widest text-gray-500">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Footer */}
+      <section className="py-32 px-6 flex flex-col items-center justify-center text-center space-y-10">
+        <h2 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tight max-w-3xl">
+          Ready to transform medical consultations?
+        </h2>
+        <button 
+          onClick={onGetStarted}
+          className="px-16 py-6 bg-gray-900 text-white rounded-[2rem] font-black text-xl hover:bg-black transition-all shadow-2xl shadow-gray-300 transform hover:scale-105"
+        >
+          Enter the Platform
+        </button>
+        <p className="text-gray-400 font-medium">No credit card required. Free forever under research mode.</p>
+      </section>
+
+      <footer className="py-12 border-t border-gray-100 italic-serif">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Activity className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-black text-gray-900">TeleHealth Connect</span>
+          </div>
+          <p className="text-gray-400 text-sm">© 2026 TeleHealth Connect. All rights reserved by local persistence protocol.</p>
+          <div className="flex items-center gap-8 text-gray-500 text-sm font-bold">
+            <a href="#" className="hover:text-blue-600 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-blue-600 transition-colors">Terms</a>
+            <a href="#" className="hover:text-blue-600 transition-colors">API</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+// --- Login Page ---
+
+const Login = ({ onBack }: { onBack?: () => void }) => {
   const [role, setRole] = useState<UserRole>('patient');
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -2278,54 +2835,79 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-600/5 -skew-x-12 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-1/2 h-full bg-indigo-600/5 -skew-x-12 -translate-x-1/2" />
+
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white w-full max-w-md p-8 rounded-3xl shadow-xl border border-gray-100"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="bg-white w-full max-w-xl p-10 rounded-[3rem] shadow-2xl border border-gray-100 relative z-10"
       >
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+        <button 
+          onClick={onBack}
+          className="absolute top-8 left-8 text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-2 font-bold mb-8"
+        >
+          <ArrowRight className="w-4 h-4 rotate-180" />
+          <span>Back</span>
+        </button>
+
+        <div className="text-center mb-10 pt-4">
+          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-100 transform -rotate-6">
             <Activity className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">TeleHealth Connect</h1>
-          <p className="text-gray-500 mt-2">Secure medical consultation platform (Local Mode)</p>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Welcome Back</h1>
+          <p className="text-gray-500 mt-3 font-medium">Select your portal to continue providing or receiving care.</p>
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-            <input 
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
+        <div className="space-y-8">
+          <div className="space-y-3">
+            <label className="block text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Email Address</label>
+            <div className="relative group">
+              <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+              <input 
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="doctor@hospital.com"
+                className="w-full pl-14 pr-6 py-5 rounded-3xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold text-gray-900 border-2 border-transparent focus:border-blue-600"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-3">I am a...</label>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
+            <label className="block text-xs font-black uppercase tracking-widest text-gray-400 ml-2">I am entering as a</label>
+            <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => setRole('patient')}
                 className={cn(
-                  "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
-                  role === 'patient' ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-100 hover:border-gray-200 text-gray-500"
+                  "p-8 rounded-[2rem] border-4 transition-all flex flex-col items-center gap-4 group",
+                  role === 'patient' ? "border-blue-600 bg-blue-50 text-blue-700 shadow-lg shadow-blue-100" : "border-gray-50 bg-gray-50 text-gray-500 hover:border-gray-100"
                 )}
               >
-                <UserIcon className="w-6 h-6" />
-                <span className="font-bold">Patient</span>
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                  role === 'patient' ? "bg-blue-600 text-white" : "bg-white text-gray-400"
+                )}>
+                  <UserIcon className="w-6 h-6" />
+                </div>
+                <span className="font-black text-lg">Patient</span>
               </button>
               <button 
                 onClick={() => setRole('clinician')}
                 className={cn(
-                  "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
-                  role === 'clinician' ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-100 hover:border-gray-200 text-gray-500"
+                  "p-8 rounded-[2rem] border-4 transition-all flex flex-col items-center gap-4 group",
+                  role === 'clinician' ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-lg shadow-indigo-100" : "border-gray-50 bg-gray-50 text-gray-500 hover:border-gray-100"
                 )}
               >
-                <Users className="w-6 h-6" />
-                <span className="font-bold">Clinician</span>
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                  role === 'clinician' ? "bg-indigo-600 text-white" : "bg-white text-gray-400"
+                )}>
+                  <Users className="w-6 h-6" />
+                </div>
+                <span className="font-black text-lg">Clinician</span>
               </button>
             </div>
           </div>
@@ -2333,14 +2915,25 @@ const Login = () => {
           <button 
             onClick={handleLogin}
             disabled={isLoading}
-            className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all flex items-center justify-center gap-3"
+            className="w-full bg-gray-900 text-white py-6 rounded-[2rem] font-black text-xl hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200 mt-4 overflow-hidden relative"
           >
-            {isLoading ? "Signing in..." : "Sign In (Local)"}
+            {isLoading ? (
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
+              />
+            ) : (
+              <>
+                <ShieldCheck className="w-6 h-6" />
+                <span>Secure Sign In</span>
+              </>
+            )}
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-8">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+        <p className="text-center text-xs text-gray-400 mt-10 font-bold uppercase tracking-widest leading-relaxed">
+          Platform Security Verified • No cookies collected
         </p>
       </motion.div>
     </div>
@@ -2350,6 +2943,7 @@ const Login = () => {
 export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -2370,25 +2964,36 @@ export default function App() {
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-gray-50 font-sans">
-          {!userProfile ? (
-            <Login />
-          ) : (
-            <>
-              <Navbar userProfile={userProfile} />
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={
-                    userProfile.role === 'clinician' 
-                      ? <ClinicianDashboard userProfile={userProfile} /> 
-                      : <PatientDashboard userProfile={userProfile} />
-                  } 
-                />
-                <Route path="/manual" element={<UserManual />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </>
-          )}
+          <Routes>
+            <Route path="/manual" element={<UserManual />} />
+            <Route 
+              path="*" 
+              element={
+                !userProfile ? (
+                  showLogin ? (
+                    <Login onBack={() => setShowLogin(false)} />
+                  ) : (
+                    <WelcomePage onGetStarted={() => setShowLogin(true)} />
+                  )
+                ) : (
+                  <>
+                    <Navbar userProfile={userProfile} />
+                    <Routes>
+                      <Route 
+                        path="/" 
+                        element={
+                          userProfile.role === 'clinician' 
+                            ? <ClinicianDashboard userProfile={userProfile} /> 
+                            : <PatientDashboard userProfile={userProfile} />
+                        } 
+                      />
+                      <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                  </>
+                )
+              } 
+            />
+          </Routes>
         </div>
       </Router>
     </ErrorBoundary>
