@@ -45,7 +45,8 @@ import {
   Check,
   ArrowRight,
   Printer,
-  Mail
+  Mail,
+  History as HistoryIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Map, Marker } from 'pigeon-maps';
@@ -2592,94 +2593,168 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="relative"
           >
             {/* Visual Representation of Dashboard */}
-            <div className="relative bg-gray-900 rounded-[3rem] p-5 shadow-[0_32px_64px_-16px_rgba(37,99,235,0.2)] aspect-[4/3.5] overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 mix-blend-overlay" />
-              
-              <div className="h-full w-full bg-white rounded-[2.2rem] overflow-hidden border border-white/20 p-6 flex flex-col gap-6">
-                {/* Header Preview */}
-                <div className="flex items-center justify-between pb-4 border-b border-gray-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg" />
-                    <div className="h-3 w-24 bg-gray-100 rounded-full" />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-8 h-4 bg-green-100 rounded-full" />
-                    <div className="w-4 h-4 bg-gray-100 rounded-full" />
-                  </div>
+            <div className="relative aspect-[4/3] w-full max-w-2xl mx-auto">
+              {/* Back UI (Patient Dashboard Replicated) */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="absolute -left-10 top-20 w-[95%] bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white transform -rotate-6 z-0 group hover:rotate-0 transition-all duration-500 hover:z-20 p-6 flex flex-col gap-6 scale-90"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-gray-900 tracking-tight">Patient Profile</h3>
+                  <button className="px-4 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-500 flex items-center gap-2">
+                    <Edit2 className="w-3 h-3" /> Edit Profile
+                  </button>
                 </div>
                 
-                {/* Bento Grid Preview */}
-                <div className="grid grid-cols-12 gap-4 flex-1">
-                  {/* Left Column: List/Queue */}
-                  <div className="col-span-4 space-y-3">
-                    {[1,2,3,4].map(i => (
-                      <div key={i} className="h-10 bg-gray-50/50 rounded-xl border border-gray-100 flex items-center px-3 gap-2">
-                        <div className="w-5 h-5 bg-gray-200 rounded-lg shrink-0" />
-                        <div className="h-1.5 w-full bg-gray-200 rounded-full" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest mb-1">Full Name</p>
+                      <p className="text-sm font-bold text-gray-900">Ayan Pal</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest mb-1">Email Address</p>
+                      <p className="text-sm font-bold text-gray-900">ayanpal209806@gmail.com</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                      <p className="text-[10px] font-black text-blue-600 uppercase mb-1">Clinical Notes</p>
+                      <p className="text-[9px] text-blue-800 leading-relaxed">Registered since 2026. All medical history is stored securely in local storage.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
+                      <BookOpen className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-gray-900">Medical History Summary</p>
+                      <p className="text-[8px] text-amber-600 uppercase font-black">Quick review of past diagnoses</p>
+                    </div>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-amber-300" />
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-xs font-black text-gray-900 flex items-center gap-2">
+                    <HistoryIcon className="w-3 h-3 text-gray-400" /> Case History <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px]">1</span>
+                  </p>
+                  <div className="p-4 border border-gray-100 rounded-2xl bg-white shadow-sm flex justify-between items-center">
+                    <div>
+                      <p className="text-[8px] text-gray-400 font-bold mb-1">05/04/2026</p>
+                      <p className="text-xs font-black text-gray-900">headache and running nose</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="px-2 py-0.5 bg-gray-50 text-gray-400 rounded text-[8px] font-bold">General Medicine</span>
+                      </div>
+                    </div>
+                    <span className="text-[8px] font-black text-green-500 uppercase tracking-widest px-2 py-1 bg-green-50 rounded-full">Completed</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Front UI (Clinician Dashboard Replicated) */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="absolute right-0 top-0 w-[95%] bg-white rounded-[2.5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(37,99,235,0.3)] border-4 border-white z-10 group hover:-translate-y-4 transition-all duration-500 flex flex-col"
+              >
+                {/* Header */}
+                <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-white">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-blue-600" />
+                      <span className="text-[10px] font-black tracking-tight">TeleHealth Connect</span>
+                    </div>
+                    <div className="flex gap-4">
+                      <span className="text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 pb-1">Queue</span>
+                      <span className="text-[10px] font-bold text-gray-400">Map View</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold text-gray-400">Available</span>
+                    <div className="w-8 h-4 bg-green-500 rounded-full relative">
+                      <div className="absolute right-0.5 top-0.5 w-3 h-3 bg-white rounded-full" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-1 min-h-[300px]">
+                  {/* Sidebar */}
+                  <div className="w-1/3 bg-gray-50/50 border-r border-gray-100 p-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[9px] font-black text-gray-900 uppercase tracking-widest">Patient Queue</span>
+                      <span className="text-[8px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-black">0 New</span>
+                    </div>
+                    {[
+                      { name: "user_kaa1ip", time: "18:37", sym: "stomache" },
+                      { name: "ayanpal209806", time: "16:03", sym: "headache..." },
+                      { name: "user_h28pvt", time: "15:21", sym: "severe head..." }
+                    ].map((p, i) => (
+                      <div key={i} className={`p-3 rounded-xl border ${i === 0 ? 'bg-white border-blue-100 shadow-sm' : 'bg-transparent border-transparent opacity-60'}`}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[8px] text-green-500 font-bold uppercase">Completed</span>
+                          <span className="text-[8px] text-gray-400">{p.time}</span>
+                        </div>
+                        <p className="text-[10px] font-black text-gray-900">{p.name}</p>
+                        <p className="text-[8px] text-gray-500 mt-1">{p.sym}</p>
                       </div>
                     ))}
                   </div>
 
-                  {/* Middle Column: Detail View */}
-                  <div className="col-span-8 flex flex-col gap-4">
-                    <div className="p-6 bg-blue-50/30 rounded-3xl border border-blue-50 flex-1 flex flex-col gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm" />
-                        <div className="space-y-1.5 flex-1">
-                          <div className="h-3 w-1/2 bg-gray-200 rounded-full" />
-                          <div className="h-2 w-1/3 bg-gray-100 rounded-full" />
+                  {/* Main content */}
+                  <div className="flex-1 p-6 space-y-6 bg-white">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400">
+                        <UserIcon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-gray-900">user_kaa1ip</h4>
+                        <div className="flex gap-2">
+                          <span className="px-2 py-0.5 bg-blue-600 text-white rounded text-[8px] font-bold">Case Details</span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 h-full">
-                        <div className="bg-white/80 rounded-2xl p-4 flex flex-col gap-2">
-                          <div className="h-2 w-12 bg-indigo-100 rounded-full" />
-                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
-                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Symptoms</p>
+                        <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-50">
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[7px] font-black uppercase inline-block mb-2">Emergency Medicine</span>
+                          <p className="text-xs font-medium text-gray-700">stomache</p>
                         </div>
-                        <div className="bg-white/80 rounded-2xl p-4 flex flex-col gap-2">
-                          <div className="h-2 w-12 bg-green-100 rounded-full" />
-                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
-                          <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                      </div>
+                      <div className="space-y-4">
+                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">Patient Location</p>
+                        <div className="aspect-video bg-blue-50 rounded-xl border border-blue-100 overflow-hidden relative">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <MapPin className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div className="absolute bottom-2 left-2 right-2 bg-white/90 p-2 rounded-lg text-[7px] border border-blue-50">
+                            <p className="font-bold">Agartala, Tripura</p>
+                            <p className="text-gray-400">23.8411, 91.2983</p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Bottom Controls */}
-                <div className="h-12 bg-gray-900 rounded-2xl p-3 flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                    <div className="h-1.5 w-20 bg-white/20 rounded-full" />
-                  </div>
-                  <div className="w-16 h-4 bg-white/10 rounded-full" />
-                </div>
-              </div>
-
-              {/* Status Tags */}
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 4 }}
-                className="absolute top-12 left-12 bg-white px-4 py-2 rounded-2xl shadow-2xl border border-gray-100 flex items-center gap-2"
-              >
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-[10px] font-black uppercase text-gray-900 tracking-wider">Clinician Live</span>
               </motion.div>
 
-              <motion.div 
-                animate={{ x: [0, 10, 0] }}
-                transition={{ repeat: Infinity, duration: 3 }}
-                className="absolute bottom-24 right-12 bg-indigo-600 px-4 py-3 rounded-2xl shadow-2xl text-white flex items-center gap-3"
-              >
-                <Pill className="w-4 h-4" />
-                <span className="text-[10px] font-bold">New Rx Generated</span>
-              </motion.div>
+              {/* Decorative elements */}
+              <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-50" />
+              <div className="absolute -top-10 -left-10 w-48 h-48 bg-indigo-100 rounded-full blur-3xl opacity-30" />
             </div>
           </motion.div>
         </div>
