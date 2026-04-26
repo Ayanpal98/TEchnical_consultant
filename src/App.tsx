@@ -178,10 +178,20 @@ const Navbar = ({ userProfile }: { userProfile: UserProfile | null }) => {
         </Link>
         
         <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-6 mr-6">
+            <Link 
+              to="/manual" 
+              className="text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              Documentation
+            </Link>
+          </div>
+
           <div className="flex items-center gap-2">
             <Link 
               to="/manual" 
-              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors lg:hidden"
               title="User Manual"
             >
               <HelpCircle className="w-5 h-5" />
@@ -3039,10 +3049,11 @@ export default function App() {
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-gray-50 font-sans">
+          {userProfile && <Navbar userProfile={userProfile} />}
           <Routes>
             <Route path="/manual" element={<UserManual />} />
             <Route 
-              path="*" 
+              path="/" 
               element={
                 !userProfile ? (
                   showLogin ? (
@@ -3051,23 +3062,13 @@ export default function App() {
                     <WelcomePage onGetStarted={() => setShowLogin(true)} />
                   )
                 ) : (
-                  <>
-                    <Navbar userProfile={userProfile} />
-                    <Routes>
-                      <Route 
-                        path="/" 
-                        element={
-                          userProfile.role === 'clinician' 
-                            ? <ClinicianDashboard userProfile={userProfile} /> 
-                            : <PatientDashboard userProfile={userProfile} />
-                        } 
-                      />
-                      <Route path="*" element={<Navigate to="/" />} />
-                    </Routes>
-                  </>
+                  userProfile.role === 'clinician' 
+                    ? <ClinicianDashboard userProfile={userProfile} /> 
+                    : <PatientDashboard userProfile={userProfile} />
                 )
               } 
             />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
       </Router>
