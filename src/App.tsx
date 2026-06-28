@@ -69,6 +69,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { TeleHealthLogo } from './components/TeleHealthLogo';
 import { mockAuth, mockDb } from './lib/mockDb';
 import { SPECIALTIES, Specialty } from './constants';
 import { getConsultantSuggestions, ConsultantSuggestion } from './services/routingService';
@@ -3788,9 +3789,7 @@ const UserManual = () => {
         <div className="p-12 border-b border-gray-100 bg-gray-900 text-white flex flex-col md:flex-row justify-between items-start md:items-end gap-8 relative z-10">
           <div className="space-y-6 max-w-2xl">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20">
-                <Activity className="w-8 h-8 text-white" />
-              </div>
+              <TeleHealthLogo size={56} variant="icon" theme="dark" />
               <div className="h-[2px] w-12 bg-blue-500/30" />
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400">Spec-Document v2.4</span>
             </div>
@@ -4000,9 +3999,7 @@ const UserManual = () => {
         {/* Footer Meta */}
         <div className="p-12 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-8 bg-white">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center">
-              <Activity className="w-6 h-6 text-white" />
-            </div>
+            <TeleHealthLogo size={44} variant="icon" />
             <div>
               <p className="text-xs font-black text-gray-900 uppercase tracking-widest">TeleHealth Protocol</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">San Francisco, CA • Est 2024</p>
@@ -4098,11 +4095,8 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
       <nav className="fixed top-0 w-full z-50 bg-white/75 backdrop-blur-xl border-b border-slate-100 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Left Brand Logo */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-              <Activity className="w-6 h-6 text-white animate-pulse" />
-            </div>
-            <span className="text-xl font-black tracking-tight text-slate-900 bg-clip-text">TeleHealth Connect</span>
+          <div className="flex items-center cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <TeleHealthLogo size={42} variant="horizontal" showTagline={false} />
           </div>
 
           {/* Center Links */}
@@ -5166,11 +5160,8 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-12 pb-12 border-b border-slate-800 text-sm">
           {/* Col 1 Brand */}
           <div className="col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Activity className="w-5 h-5 text-white animate-pulse" />
-              </div>
-              <span className="font-black text-white text-lg">TeleHealth Connect</span>
+            <div className="flex items-center">
+              <TeleHealthLogo size={40} variant="horizontal" showTagline={true} theme="dark" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
               The next-generation Local-First Persistence Model telehealth suite. Isolate, encrypt, and sync clinical consultations securely without central cloud storage tracks.
@@ -5261,11 +5252,8 @@ const Login = ({ onBack }: { onBack?: () => void }) => {
         </button>
 
         <div className="text-center mb-10 pt-4">
-          <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-100 transform -rotate-6">
-            <Activity className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Welcome Back</h1>
-          <p className="text-gray-500 mt-3 font-medium">Select your portal to continue providing or receiving care.</p>
+          <TeleHealthLogo size={110} variant="full" showTagline={true} className="mb-6" />
+          <p className="text-gray-500 mt-1 font-medium text-sm">Select your portal to continue providing or receiving care.</p>
         </div>
 
         <div className="space-y-8">
