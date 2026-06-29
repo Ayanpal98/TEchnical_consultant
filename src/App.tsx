@@ -70,6 +70,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { TeleHealthLogo } from './components/TeleHealthLogo';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { mockAuth, mockDb } from './lib/mockDb';
 import { SPECIALTIES, Specialty } from './constants';
 import { getConsultantSuggestions, ConsultantSuggestion } from './services/routingService';
@@ -4091,6 +4092,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-blue-100 text-slate-700 font-sans scroll-smooth">
+      <PWAInstallPrompt />
       {/* Navigation Bar */}
       <nav className="fixed top-0 w-full z-50 bg-white/75 backdrop-blur-xl border-b border-slate-100 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
