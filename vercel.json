@@ -65,7 +65,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|favicon.png|icon.svg|apple-touch-icon.png|manifest.webmanifest|sw.js|workbox-.*.js|registerSW.js|icon-.*.png|maskable-icon.png).*)",
+      "source": "/((?!assets/|sw\\.js|workbox-.*\\.js|registerSW\\.js|manifest\\.webmanifest|favicon\\.png|icon\\.svg|apple-touch-icon\\.png|maskable-icon\\.png|icon-.*\\.png).*)",
       "destination": "/index.html"
     }
   ]

@@ -10,6 +10,19 @@ export default defineConfig(({mode}) => {
     plugins: [
       react(), 
       tailwindcss(),
+      {
+        name: 'dev-sw-mime-fix',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url === '/sw.js') {
+              res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+              res.end('// Dev placeholder to prevent MIME type error\nself.addEventListener("install", () => self.skipWaiting());');
+              return;
+            }
+            next();
+          });
+        }
+      },
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
