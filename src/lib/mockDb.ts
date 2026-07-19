@@ -19,7 +19,7 @@ const notifyCaseChange = () => {
 const MOCK_CLINICIANS: UserProfile[] = [
   {
     uid: 'c1',
-    email: 'dr.smith@telehealth.com',
+    email: 'dr.smith@clinova.com',
     displayName: 'Dr. Sarah Smith',
     role: 'clinician',
     specialty: 'Cardiology',
@@ -29,7 +29,7 @@ const MOCK_CLINICIANS: UserProfile[] = [
   },
   {
     uid: 'c2',
-    email: 'dr.jones@telehealth.com',
+    email: 'dr.jones@clinova.com',
     displayName: 'Dr. Michael Jones',
     role: 'clinician',
     specialty: 'Pediatrics',
@@ -39,7 +39,7 @@ const MOCK_CLINICIANS: UserProfile[] = [
   },
   {
     uid: 'c3',
-    email: 'dr.lee@telehealth.com',
+    email: 'dr.lee@clinova.com',
     displayName: 'Dr. Emily Lee',
     role: 'clinician',
     specialty: 'Dermatology',

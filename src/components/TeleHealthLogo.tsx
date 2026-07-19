@@ -173,10 +173,7 @@ export const TeleHealthLogo: React.FC<TeleHealthLogoProps> = ({
         <div className="flex flex-col justify-center">
           <div className="flex items-center gap-2">
             <span className={`text-2xl font-black tracking-tight ${primaryTextColor}`}>
-              TeleHealth
-            </span>
-            <span className="text-2xl font-black tracking-tight text-[#00BFA6]">
-              Connect
+              Clinova
             </span>
           </div>
           {showTagline && (
@@ -200,10 +197,7 @@ export const TeleHealthLogo: React.FC<TeleHealthLogoProps> = ({
       <div className="mt-4">
         <div className="flex items-center justify-center gap-2">
           <span className={`text-3xl md:text-4xl font-black tracking-tight ${primaryTextColor}`}>
-            TeleHealth
-          </span>
-          <span className="text-3xl md:text-4xl font-black tracking-tight text-[#00BFA6]">
-            Connect
+            Clinova
           </span>
         </div>
         {showTagline && (

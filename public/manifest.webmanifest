@@ -1,7 +1,7 @@
 {
-  "name": "TeleHealth Connect",
-  "short_name": "TH Connect",
-  "description": "AI-powered telemedicine platform for secure patient and clinician consultations.",
+  "name": "Clinova",
+  "short_name": "Clinova",
+  "description": "AI-Powered Digital Healthcare Platform",
   "theme_color": "#2563EB",
   "background_color": "#FFFFFF",
   "display": "standalone",

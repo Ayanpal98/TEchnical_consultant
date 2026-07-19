@@ -106,7 +106,7 @@ export const PWAInstallPrompt: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-black text-slate-900 tracking-tight">TeleHealth Connect</span>
+                  <span className="text-sm font-black text-slate-900 tracking-tight">Clinova</span>
                   <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase">
                     <Sparkles className="w-2.5 h-2.5" /> PWA
                   </div>

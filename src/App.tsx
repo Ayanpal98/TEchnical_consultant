@@ -190,7 +190,7 @@ const Navbar = ({ userProfile }: { userProfile: UserProfile | null }) => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-blue-600">
           <Activity className="w-6 h-6" />
-          <span>TeleHealth Connect</span>
+          <span>Clinova</span>
         </Link>
         
         <div className="flex items-center gap-4">
@@ -266,7 +266,7 @@ const PatientDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string; time: string }>>([
     { 
       sender: 'ai', 
-      text: "Hello! I am your TeleHealth AI Assistant. I can help answer health-related questions, explain medical reports, or guide you to the right specialist. How are you feeling today?", 
+      text: "Hello! I am your Clinova AI Assistant. I can help answer health-related questions, explain medical reports, or guide you to the right specialist. How are you feeling today?", 
       time: "Just now" 
     }
   ]);
@@ -343,7 +343,7 @@ const PatientDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
         <div className="space-y-6">
           <div className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-2xl flex items-center gap-2 font-bold text-sm">
             <Activity className="w-5 h-5 animate-pulse" />
-            <span>TeleHealth Portal</span>
+            <span>Clinova Portal</span>
           </div>
 
           <div className="space-y-1">
@@ -391,7 +391,7 @@ const PatientDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-2">
           <p className="text-xs font-bold text-slate-700">Need Help?</p>
           <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">Our patient support desk is online 24/7 for you.</p>
-          <a href="mailto:support@telehealth.com" className="block text-xs font-black text-blue-600 hover:underline">Contact Support</a>
+          <a href="mailto:support@clinova.com" className="block text-xs font-black text-blue-600 hover:underline">Contact Support</a>
         </div>
       </aside>
 
@@ -968,7 +968,7 @@ const PatientDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
                       <p className="text-[10px] font-black text-slate-400">ISSUED BY</p>
-                      <p className="text-xs font-bold text-slate-800">{c.assignedConsultantName || "TeleHealth Clinician"}</p>
+                      <p className="text-xs font-bold text-slate-800">{c.assignedConsultantName || "Clinova Clinician"}</p>
                     </div>
                     <button 
                       onClick={() => alert(`Downloading Rx receipt: ${c.id.slice(0, 8).toUpperCase()} file...`)}
@@ -3621,7 +3621,7 @@ const ClinicianDashboard = ({ userProfile }: { userProfile: UserProfile }) => {
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6 animate-in fade-in duration-300">
             <div>
               <h2 className="text-xl font-black text-slate-900">System Activity & Audit logs</h2>
-              <p className="text-xs text-slate-500">Decentralized logging registry records for telehealth connects</p>
+              <p className="text-xs text-slate-500">Decentralized logging registry records for Clinova connects</p>
             </div>
             
             <div className="overflow-x-auto border border-slate-100 rounded-2xl">
@@ -3800,7 +3800,7 @@ const UserManual = () => {
               <span className="text-blue-500 underline decoration-blue-500/20 underline-offset-[12px]">Specification</span>
             </h1>
             <p className="text-gray-400 font-medium text-lg max-w-lg leading-relaxed">
-              Proprietary architectural blueprint and governance framework for the TeleHealth Connect decentralized medical infrastructure.
+              Proprietary architectural blueprint and governance framework for the Clinova decentralized medical infrastructure.
             </p>
           </div>
           
@@ -3830,7 +3830,7 @@ const UserManual = () => {
               <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-8">System Architecture & <br /> Data Sovereignty</h2>
               <div className="prose prose-blue max-w-none text-gray-600 space-y-6">
                 <p className="text-xl font-medium leading-relaxed italic border-l-4 border-gray-100 pl-6 text-gray-500">
-                  TeleHealth Connect operates on a "No-Cloud" localized persistence model, shifting the authority of truth from centralized servers to validated user instances.
+                  Clinova operates on a "No-Cloud" localized persistence model, shifting the authority of truth from centralized servers to validated user instances.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
                   <div className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 group hover:border-blue-200 transition-colors">
@@ -3922,7 +3922,7 @@ const UserManual = () => {
               <h2 className="text-4xl font-black text-gray-900 tracking-tight mb-8">Governance & <br /> Privacy Protocols</h2>
               <div className="space-y-6 text-gray-600 leading-relaxed font-medium">
                 <p>
-                  This specification serves as the primary technical documentation for the TeleHealth Connect Protocol. By utilizing this infrastructure, all participants adhere to the <strong>Universal Health Data Privacy Standard (UHDPS)</strong>.
+                  This specification serves as the primary technical documentation for the Clinova Protocol. By utilizing this infrastructure, all participants adhere to the <strong>Universal Health Data Privacy Standard (UHDPS)</strong>.
                 </p>
                 <div className="bg-white p-8 rounded-3xl border border-gray-200 text-sm italic-serif leading-relaxed text-gray-500 border-l-[12px] border-l-gray-900">
                   "Individual patient data is strictly compartmentalized. Clinicians do not have persistent access to records post-consultation completion, ensuring an immutable trail of medical integrity."
@@ -3934,7 +3934,7 @@ const UserManual = () => {
                     IP & Trademark Notice
                   </h4>
                   <p className="text-xs text-gray-500 leading-relaxed">
-                    The "LFPM Protocol", "Geospatial Case-Routing Engine", and "3-Phase Diagnostic Methodology" are proprietary assets of TeleHealth Connect. All logic paths, UI components, and architectural schemas are protected under international intellectual property frameworks.
+                    The "LFPM Protocol", "Geospatial Case-Routing Engine", and "3-Phase Diagnostic Methodology" are proprietary assets of Clinova. All logic paths, UI components, and architectural schemas are protected under international intellectual property frameworks.
                   </p>
                 </div>
 
@@ -4002,7 +4002,7 @@ const UserManual = () => {
           <div className="flex items-center gap-4">
             <TeleHealthLogo size={44} variant="icon" />
             <div>
-              <p className="text-xs font-black text-gray-900 uppercase tracking-widest">TeleHealth Protocol</p>
+              <p className="text-xs font-black text-gray-900 uppercase tracking-widest">Clinova Protocol</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">San Francisco, CA • Est 2024</p>
             </div>
           </div>
@@ -4013,7 +4013,7 @@ const UserManual = () => {
             </div>
             <div className="text-right hidden md:block">
               <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Dossier ID</p>
-              <p className="text-xs font-black text-gray-900 uppercase">THC-2024-XPQ</p>
+              <p className="text-xs font-black text-gray-900 uppercase">CLI-2026-XPQ</p>
             </div>
           </div>
         </div>
@@ -4066,7 +4066,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
   const faqs = [
     {
       q: "How secure is my medical data?",
-      a: "TeleHealth Connect operates on a unique Local-First Persistence Model (LFPM). Your personal health information and consultations are stored in your secure browser sandbox, ensuring absolute data privacy and zero cloud exposure unless you explicitly choose to export your records."
+      a: "Clinova operates on a unique Local-First Persistence Model (LFPM). Your personal health information and consultations are stored in your secure browser sandbox, ensuring absolute data privacy and zero cloud exposure unless you explicitly choose to export your records."
     },
     {
       q: "Can clinical specialists prescribe medicines?",
@@ -4082,7 +4082,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
     },
     {
       q: "Is offline mode fully functional?",
-      a: "Yes. TeleHealth Connect is built to be offline-first. Even in complete network saturation or total offline environments, you can log in, draft consultations, and view your diagnostic history. Your data syncs securely when a connection is re-established."
+      a: "Yes. Clinova is built to be offline-first. Even in complete network saturation or total offline environments, you can log in, draft consultations, and view your diagnostic history. Your data syncs securely when a connection is re-established."
     },
     {
       q: "How are consultations stored?",
@@ -4476,7 +4476,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
             </div>
             <h2 className="text-4xl font-black text-slate-900 tracking-tight">Large-Scale Digital Health Features</h2>
             <p className="text-slate-500 max-w-2xl mx-auto text-base">
-              Explore how TeleHealth Connect optimizes care distribution while adhering to the absolute highest clinical privacy protocols.
+              Explore how Clinova optimizes care distribution while adhering to the absolute highest clinical privacy protocols.
             </p>
           </div>
 
@@ -4605,7 +4605,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase">
               <Stethoscope className="w-3.5 h-3.5" /> Workflow Timeline
             </div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">The TeleHealth Connect Care-Path</h2>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">The Clinova Care Journey</h2>
             <p className="text-slate-500 text-base max-w-2xl mx-auto">
               A transparent, automated operational sequence linking patient care requests to clinical diagnosis.
             </p>
@@ -4668,9 +4668,9 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase">
               <Globe className="w-3.5 h-3.5" /> Platform Sandbox
             </div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">Interactive Platform Live Preview</h2>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">Interactive Clinova Platform Preview</h2>
             <p className="text-slate-500 text-base max-w-2xl mx-auto">
-              Select a role below to preview the core dashboard experience of TeleHealth Connect in real-time.
+              Select a role below to preview the core dashboard experience of Clinova in real-time.
             </p>
           </div>
 
@@ -4894,7 +4894,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
                   Proprietary Medical Spec & Governance Framework
                 </h3>
                 <p className="text-slate-300 text-base leading-relaxed">
-                  The TeleHealth Connect User Manual details system architecture, local-first syncing protocols, database schema boundaries, HIPAA readiness matrices, and role-based interface guides. Export it anytime as a pristine portfolio asset.
+                  The Clinova Platform Manual documents the complete system architecture, local-first synchronization model, healthcare workflows, role-based dashboards, and security framework.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   <div className="flex gap-2.5 items-start">
@@ -5017,7 +5017,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
             </div>
             <h2 className="text-4xl font-black text-slate-900 tracking-tight">Frequently Asked Questions</h2>
             <p className="text-slate-500 text-base">
-              Got questions about TeleHealth Connect? We have answers.
+              Got questions about Clinova? We have answers.
             </p>
           </div>
 
@@ -5137,7 +5137,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
             Start Your Digital Healthcare Journey Today
           </h2>
           <p className="text-blue-100 text-lg md:text-xl font-medium max-w-2xl mx-auto">
-            Join thousands of active patients and authorized clinical specialists using TeleHealth Connect's secure localized platform.
+            Join thousands of active patients and authorized clinical specialists using Clinova's secure localized platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
             <button 
@@ -5166,7 +5166,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
               <TeleHealthLogo size={40} variant="horizontal" showTagline={true} theme="dark" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              The next-generation Local-First Persistence Model telehealth suite. Isolate, encrypt, and sync clinical consultations securely without central cloud storage tracks.
+              The next-generation Local-First Persistence Model Clinova platform. Isolate, encrypt, and sync clinical consultations securely without central cloud storage tracks.
             </p>
           </div>
 
@@ -5205,7 +5205,7 @@ const WelcomePage = ({ onGetStarted }: { onGetStarted: () => void }) => {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold">
-          <p>© 2026 TeleHealth Connect Protocol. All rights reserved under clinical LFPM specifications.</p>
+          <p>© 2026 Clinova Protocol. All rights reserved under clinical LFPM specifications.</p>
           <div className="flex gap-6">
             <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a>
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a>

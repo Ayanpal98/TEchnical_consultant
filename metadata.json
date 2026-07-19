@@ -1,6 +1,6 @@
 {
-  "name": "TeleHealth Connect",
-  "description": "A comprehensive patient-clinician platform featuring real-time case tracking, camera capture, and consultant routing.",
+  "name": "Clinova",
+  "description": "Clinova is an AI-powered digital healthcare platform offering secure virtual consultations, intelligent doctor matching, electronic prescriptions, medical records, and privacy-first patient care.",
   "requestFramePermissions": [
     "camera",
     "microphone",
