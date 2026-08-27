@@ -71,6 +71,7 @@ import { twMerge } from 'tailwind-merge';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { TeleHealthLogo } from './components/TeleHealthLogo';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { QuickReplyMenu, InlineQuickPills, QuickReplyTarget } from './components/QuickReplyMenu';
 import { mockAuth, mockDb } from './lib/mockDb';
 import { SPECIALTIES, Specialty } from './constants';
 import { getConsultantSuggestions, ConsultantSuggestion } from './services/routingService';
@@ -1678,11 +1679,41 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showConfirmComplete, setShowConfirmComplete] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleQuickInsert = (target: QuickReplyTarget, content: string) => {
+    if (target === 'diagnosis') {
+      setDiagnosis(prev => prev ? `${prev.trim()}\n\n${content}` : content);
+      setSteps(prev => ({ ...prev, analyzed: true }));
+      showToast('Inserted into Diagnosis & Findings');
+    } else if (target === 'treatmentPlan') {
+      setTreatmentPlan(prev => [...prev, content]);
+      setSteps(prev => ({ ...prev, updated: true }));
+      showToast('Added step to Treatment Plan');
+    } else if (target === 'notes') {
+      setNotes(prev => prev ? `${prev.trim()}\n\n${content}` : content);
+      showToast('Appended to Clinician Private Notes');
+    } else if (target === 'medicalAssistanceMeasures') {
+      setMedicalAssistanceMeasures(prev => prev ? `${prev.trim()}\n\n${content}` : content);
+      setSteps(prev => ({ ...prev, updated: true }));
+      showToast('Inserted into Medical Assistance Measures');
+    } else if (target === 'medication') {
+      setMedications(prev => [...prev, content]);
+      setSteps(prev => ({ ...prev, updated: true }));
+      showToast('Added prescribed medication');
+    }
+  };
 
   const handleAddMed = () => {
     if (newMed.trim()) {
       setMedications([...medications, newMed.trim()]);
       setNewMed('');
+      setSteps(prev => ({ ...prev, updated: true }));
     }
   };
 
@@ -1694,6 +1725,7 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
     if (newPlanStep.trim()) {
       setTreatmentPlan([...treatmentPlan, newPlanStep.trim()]);
       setNewPlanStep('');
+      setSteps(prev => ({ ...prev, updated: true }));
     }
   };
 
@@ -1743,14 +1775,76 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
     }
   };
 
+  const diagnosisPills = [
+    { title: 'Viral URI', text: 'Patient presents with symptoms consistent with acute viral upper respiratory tract infection. Clear lung sounds bilaterally, no signs of lower respiratory consolidation or secondary bacterial infection.' },
+    { title: 'Tension Headache', text: 'Bilateral, mild-to-moderate band-like tension headache without photophobia, nausea, or focal neurological deficits.' },
+    { title: 'Contact Dermatitis', text: 'Localized erythematous pruritic maculopapular rash secondary to external allergen/irritant contact. Intact epidermal barrier.' },
+    { title: 'Gastroenteritis', text: 'Acute uncomplicated gastroenteritis with mild nausea and self-limiting loose stools. Good oral hydration maintained.' },
+    { title: 'Lumbar Strain', text: 'Acute musculoskeletal lumbar strain with localized paravertebral tenderness and intact lower extremity neurovascular exam.' }
+  ];
+
+  const notesPills = [
+    { title: 'Teleconsult Verified', text: 'Virtual teleconsultation conducted via secure Clinova video/audio channel. Patient identity verified. Informed consent documented.' },
+    { title: 'Low Acute Risk', text: 'Patient evaluated as low acute clinical risk. Supportive home therapy and symptom monitoring initiated.' },
+    { title: 'Rx Counseled', text: 'Prescription issued. Patient counseled on medication timing, food intake, and warning signs.' },
+    { title: 'Follow-up in 48h', text: 'Advised patient to schedule secondary teleconsultation if symptoms do not improve within 48-72 hours.' }
+  ];
+
+  const measuresPills = [
+    { title: 'Home Isolation', text: 'Advised voluntary home convalescence and high-filtration mask wearing until afebrile for 24 hours.' },
+    { title: 'Vital Tele-Monitoring', text: 'Instructed patient to record temperature, resting heart rate, and SpO2 twice daily.' },
+    { title: 'Ergonomic Guidelines', text: 'Provided ergonomic posture guidelines and 5-minute stretch routine during desk work.' }
+  ];
+
+  const treatmentPills = [
+    { title: 'Hydration 2.5-3L', text: 'Maintain vigorous oral hydration (2.5 - 3.0 L/day) using water, herbal broths, or oral rehydration solutions.' },
+    { title: '48h Rest', text: 'Strict cognitive and physical rest for 48 hours; avoid heavy lifting, workouts, and extended screen time.' },
+    { title: 'Saline Gargle & Steam', text: 'Perform warm saline gargles 3-4 times daily and steam inhalation before sleep.' },
+    { title: 'BRAT Diet', text: 'Follow bland BRAT diet (bananas, rice, applesauce, toast); strictly avoid dairy and greasy foods for 72 hours.' },
+    { title: 'Emergency Red Flags', text: 'Seek emergency evaluation immediately if experiencing high fever (>39°C), dyspnea, chest pressure, or altered alertness.' }
+  ];
+
+  const medicationPills = [
+    { title: 'Paracetamol 500mg', text: 'Paracetamol 500mg PO every 6 hours as needed for fever/pain (Max 3000mg/24h)' },
+    { title: 'Ibuprofen 400mg', text: 'Ibuprofen 400mg PO every 8 hours with food for anti-inflammatory pain relief' },
+    { title: 'Cetirizine 10mg', text: 'Cetirizine 10mg PO once daily at bedtime for allergic symptom control' },
+    { title: 'ORS Sachet', text: 'Oral Rehydration Salts (1 sachet in 1L boiled water, sip throughout day)' }
+  ];
+
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-6 md:p-8 space-y-8 relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-8 z-50 px-4 py-2.5 bg-slate-900 text-white rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold border border-slate-700"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Medical Consultation</h3>
-          <p className="text-sm text-gray-500">Follow the guided steps to provide proper medical guidance.</p>
+          <div className="flex items-center gap-2.5">
+            <h3 className="text-xl font-black text-slate-900">Medical Consultation</h3>
+            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-[10px] font-black uppercase tracking-wider">
+              Clinician Editor
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Follow the guided steps or use Quick Reply presets to provide rapid, standardized care guidance.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Quick Reply Menu Trigger */}
+          <QuickReplyMenu onInsert={handleQuickInsert} activeTarget="diagnosis" />
+
           <AnimatePresence mode="wait">
             {saveSuccess && (
               <motion.div
@@ -1764,58 +1858,67 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
               </motion.div>
             )}
           </AnimatePresence>
+
           <button 
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm flex items-center gap-2 group"
+            className="px-3.5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl font-black transition-all text-xs flex items-center gap-1.5 group active:scale-95"
           >
             {isSaving ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full"
+                className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-600 rounded-full"
               />
-            ) : <Save className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />}
+            ) : <Save className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />}
             {isSaving ? "Saving..." : "Save Progress"}
           </button>
+
           <button 
+            type="button"
             onClick={() => setShowConfirmComplete(true)}
             disabled={!steps.consulted || !steps.analyzed || !steps.updated || isSaving}
-            className="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all text-sm disabled:opacity-50 shadow-lg shadow-green-100 flex items-center gap-2"
+            className="px-4 py-2 bg-green-600 text-white rounded-xl font-black hover:bg-green-700 transition-all text-xs disabled:opacity-50 shadow-md shadow-green-600/20 flex items-center gap-1.5 active:scale-95"
           >
-            <CheckCircle className="w-4 h-4" />
+            <CheckCircle className="w-3.5 h-3.5" />
             Complete Case
           </button>
         </div>
       </div>
 
       {/* Guided Steps */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { id: 'consulted', label: 'Consult', icon: Stethoscope, desc: 'Review symptoms & history' },
-          { id: 'analyzed', label: 'Analyze', icon: Activity, desc: 'Formulate diagnosis' },
-          { id: 'updated', label: 'Update', icon: FileText, desc: 'Provide meds & guidance' }
+          { id: 'consulted', label: '1. Consult', icon: Stethoscope, desc: 'Review symptoms & history' },
+          { id: 'analyzed', label: '2. Analyze', icon: Activity, desc: 'Formulate diagnosis & notes' },
+          { id: 'updated', label: '3. Prescribe & Guide', icon: FileText, desc: 'Treatment plan & medications' }
         ].map((step) => (
           <button
             key={step.id}
+            type="button"
             onClick={() => toggleStep(step.id as any)}
             className={cn(
-              "p-4 rounded-2xl border text-left transition-all relative overflow-hidden group",
+              "p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden group",
               steps[step.id as keyof typeof steps] 
-                ? "bg-blue-50 border-blue-200" 
-                : "bg-white border-gray-100 hover:border-blue-100"
+                ? "bg-blue-50/80 border-blue-200 shadow-sm" 
+                : "bg-white border-slate-100 hover:border-blue-100"
             )}
           >
-            <div className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
-              steps[step.id as keyof typeof steps] ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"
-            )}>
-              <step.icon className="w-5 h-5" />
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+                steps[step.id as keyof typeof steps] ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"
+              )}>
+                <step.icon className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-bold text-xs text-slate-900">{step.label}</h4>
+                <p className="text-[10px] text-slate-500">{step.desc}</p>
+              </div>
             </div>
-            <h4 className="font-bold text-gray-900">{step.label}</h4>
-            <p className="text-[10px] text-gray-500">{step.desc}</p>
             {steps[step.id as keyof typeof steps] && (
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-2.5 right-2.5">
                 <Check className="w-4 h-4 text-blue-600" />
               </div>
             )}
@@ -1823,82 +1926,159 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
         ))}
       </div>
 
-      {/* Medical Guidance Tips */}
-      <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-3">
-        <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
-          <Info className="w-4 h-4" />
+      {/* Quick Reply Tip & Banner */}
+      <div className="p-3.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-100/80 rounded-2xl flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+            <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+              Quick Reply Menu Enabled
+              <span className="text-[9px] font-bold px-1.5 py-0.2 bg-blue-600 text-white rounded">Speed Presets</span>
+            </h4>
+            <p className="text-[11px] text-slate-600">
+              Click the <strong className="text-blue-700 font-bold">⚡ Quick Reply Menu</strong> or the quick pill phrases below each box to insert standardized clinical wording instantly.
+            </p>
+          </div>
         </div>
-        <div className="space-y-1">
-          <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider">Medical Guidance Tips</h4>
-          <p className="text-xs text-amber-800 leading-relaxed">
-            {!steps.consulted ? "Start by reviewing the patient's symptoms and visual evidence carefully." :
-             !steps.analyzed ? "Compare findings with standard clinical protocols for the reported symptoms." :
-             !steps.updated ? "Ensure all prescribed medications include dosage and frequency instructions." :
-             "Consultation complete. Review all entries before finalizing the case."}
-          </p>
-        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            const btn = document.getElementById('quick-reply-trigger-btn');
+            if (btn) btn.click();
+          }}
+          className="text-xs font-bold text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+        >
+          Browse All Phrases →
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Left Column: Diagnosis, Notes, Measures */}
         <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Diagnosis & Findings</label>
+          {/* Diagnosis & Findings */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Diagnosis & Findings
+              </label>
+              <span className="text-[10px] text-slate-400 font-semibold">Visible to Patient</span>
+            </div>
+
+            <InlineQuickPills 
+              label="Common Diagnoses:"
+              items={diagnosisPills}
+              onSelect={(text) => handleQuickInsert('diagnosis', text)}
+            />
+
             <textarea 
               value={diagnosis}
               onChange={(e) => setDiagnosis(e.target.value)}
-              placeholder="Enter your medical analysis and diagnosis here..."
-              className="w-full h-32 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm"
+              placeholder="Enter your medical analysis and diagnosis here or select from Quick Replies..."
+              className="w-full h-32 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-xs leading-relaxed"
             />
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Clinician Notes (Private)</label>
+
+          {/* Clinician Notes (Private) */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Clinician Notes (Private)
+              </label>
+              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-bold">
+                🔒 Clinician Only
+              </span>
+            </div>
+
+            <InlineQuickPills 
+              label="Clinical Notes:"
+              items={notesPills}
+              onSelect={(text) => handleQuickInsert('notes', text)}
+            />
+
             <textarea 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Internal notes for future reference..."
-              className="w-full h-32 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm"
+              placeholder="Internal clinician remarks, differential notes, risk triage rationale..."
+              className="w-full h-32 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-xs leading-relaxed"
             />
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Medical Assistance Measures</label>
+
+          {/* Medical Assistance Measures */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Medical Assistance Measures
+              </label>
+              <span className="text-[10px] text-slate-400 font-semibold">Convalescence Protocol</span>
+            </div>
+
+            <InlineQuickPills 
+              label="Assistance Protocols:"
+              items={measuresPills}
+              onSelect={(text) => handleQuickInsert('medicalAssistanceMeasures', text)}
+            />
+
             <textarea 
               value={medicalAssistanceMeasures}
               onChange={(e) => setMedicalAssistanceMeasures(e.target.value)}
-              placeholder="Detailed measures for patient medical assistance..."
-              className="w-full h-32 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm"
+              placeholder="Home quarantine advice, daily vitals telemonitoring, ergonomic guidelines..."
+              className="w-full h-32 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none text-xs leading-relaxed"
             />
           </div>
         </div>
 
+        {/* Right Column: Structured Treatment Plan & Prescriptions */}
         <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Structured Treatment Plan</label>
-            <div className="flex gap-2 mb-4">
+          {/* Treatment Plan */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Structured Treatment Plan
+              </label>
+              <span className="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-bold">
+                {treatmentPlan.length} Steps
+              </span>
+            </div>
+
+            <InlineQuickPills 
+              label="Treatment Directives:"
+              items={treatmentPills}
+              onSelect={(text) => handleQuickInsert('treatmentPlan', text)}
+            />
+
+            <div className="flex gap-2">
               <input 
                 type="text"
                 value={newPlanStep}
                 onChange={(e) => setNewPlanStep(e.target.value)}
-                placeholder="Add a step to the treatment plan..."
-                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                placeholder="Type or 1-click insert treatment directive..."
+                className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-xs"
                 onKeyPress={(e) => e.key === 'Enter' && handleAddPlanStep()}
               />
               <button 
+                type="button"
                 onClick={handleAddPlanStep}
-                className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all"
+                className="px-3 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all text-xs font-bold flex items-center gap-1"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
+                <span>Add</span>
               </button>
             </div>
-            <div className="space-y-2">
+
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               <AnimatePresence>
                 {treatmentPlan.length === 0 ? (
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200"
+                    className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200"
                   >
-                    <ClipboardList className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-xs text-gray-400">No treatment steps added yet</p>
+                    <ClipboardList className="w-6 h-6 text-slate-300 mx-auto mb-1" />
+                    <p className="text-xs text-slate-400 font-medium">No treatment steps added yet</p>
+                    <p className="text-[10px] text-slate-400">Click a quick phrase above or type a step.</p>
                   </motion.div>
                 ) : (
                   treatmentPlan.map((step, index) => (
@@ -1907,20 +2087,21 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-indigo-200 transition-all group"
+                      transition={{ delay: index * 0.03 }}
+                      className="flex items-start justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl hover:border-indigo-200 transition-all group gap-2"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                          <span className="text-xs font-bold">{index + 1}</span>
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-5 h-5 bg-indigo-100 text-indigo-700 rounded-md flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-black">
+                          {index + 1}
                         </div>
-                        <span className="text-sm font-medium text-gray-700">{step}</span>
+                        <span className="text-xs font-medium text-slate-700 leading-relaxed">{step}</span>
                       </div>
                       <button 
+                        type="button"
                         onClick={() => handleRemovePlanStep(index)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0"
                       >
-                        <Plus className="w-4 h-4 rotate-45" />
+                        <Plus className="w-3.5 h-3.5 rotate-45" />
                       </button>
                     </motion.div>
                   ))
@@ -1928,34 +2109,54 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
               </AnimatePresence>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Prescribed Medications</label>
-            <div className="flex gap-2 mb-4">
+
+          {/* Prescribed Medications */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Prescribed Medications & Rx
+              </label>
+              <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">
+                {medications.length} Prescribed
+              </span>
+            </div>
+
+            <InlineQuickPills 
+              label="Standard Rx:"
+              items={medicationPills}
+              onSelect={(text) => handleQuickInsert('medication', text)}
+            />
+
+            <div className="flex gap-2">
               <input 
                 type="text"
                 value={newMed}
                 onChange={(e) => setNewMed(e.target.value)}
-                placeholder="e.g. Paracetamol 500mg"
-                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                placeholder="e.g. Paracetamol 500mg PO TDS for 3 days"
+                className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-xs"
                 onKeyPress={(e) => e.key === 'Enter' && handleAddMed()}
               />
               <button 
+                type="button"
                 onClick={handleAddMed}
-                className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
+                className="px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all text-xs font-bold flex items-center gap-1"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
+                <span>Add Rx</span>
               </button>
             </div>
-            <div className="space-y-2">
+
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               <AnimatePresence>
                 {medications.length === 0 ? (
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200"
+                    className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200"
                   >
-                    <Pill className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-xs text-gray-400">No medications prescribed yet</p>
+                    <Pill className="w-6 h-6 text-slate-300 mx-auto mb-1" />
+                    <p className="text-xs text-slate-400 font-medium">No medications prescribed yet</p>
+                    <p className="text-[10px] text-slate-400">Click a quick medication pill or enter dosage above.</p>
                   </motion.div>
                 ) : (
                   medications.map((med, index) => (
@@ -1964,20 +2165,21 @@ const ConsultationSection = ({ medicalCase, clinician }: { medicalCase: MedicalC
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-blue-200 transition-all group"
+                      transition={{ delay: index * 0.03 }}
+                      className="flex items-center justify-between p-2.5 bg-blue-50/40 border border-blue-100/80 rounded-xl hover:border-blue-200 transition-all group"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                          <Pill className="w-4 h-4" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center shrink-0">
+                          <Pill className="w-3.5 h-3.5" />
                         </div>
-                        <span className="text-sm font-medium text-gray-700">{med}</span>
+                        <span className="text-xs font-semibold text-slate-800">{med}</span>
                       </div>
                       <button 
+                        type="button"
                         onClick={() => handleRemoveMed(index)}
-                        className="text-gray-300 hover:text-red-500 transition-colors"
+                        className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                       >
-                        <Plus className="w-4 h-4 rotate-45" />
+                        <Plus className="w-3.5 h-3.5 rotate-45" />
                       </button>
                     </motion.div>
                   ))
